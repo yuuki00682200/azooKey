@@ -56,7 +56,8 @@ final class KeyboardViewController: UIInputViewController {
         clipboardHistoryManagerConfig: ClipboardHistoryManagerConfig(),
         tabManagerConfig: TabManagerConfig(),
         userDefaults: UserDefaults.standard,
-        sharedUserDefaults: SharedStore.userDefaults
+        sharedUserDefaults: SharedStore.userDefaults,
+        duoFlickEnabled: AzooKeySettingProvider.duoFlickEnabled
     )
 
     struct Keyboard: View {
@@ -80,6 +81,11 @@ final class KeyboardViewController: UIInputViewController {
     private var lastKnownSafeAreaInsets: UIEdgeInsets = .zero
     private var lastKnownOrientation: KeyboardOrientation?
     private var lastKnownReservedFrames: [CGRect] = []
+    private var lastKnownAllowsDuoFlickPanels: Bool?
+
+    private var allowsDuoFlickPanels: Bool {
+        keyboardPresentation.allowsDuoFlickPanels
+    }
 
     private var keyboardPresentation: KeyboardPresentation {
         guard let scene = view.window?.windowScene else {
@@ -135,7 +141,7 @@ final class KeyboardViewController: UIInputViewController {
         }
         SemiStaticStates.shared.setScreenWidth(size.width)
         KeyboardViewController.variableStates.setContainerWidth(
-            size.width, orientation: orientation
+            size.width, orientation: orientation, allowsDuoFlickPanels: allowsDuoFlickPanels
         )
         if shouldUpdateHeight {
             self.updateScreenHeight()
@@ -206,7 +212,8 @@ final class KeyboardViewController: UIInputViewController {
                         width: KeyboardViewController.variableStates.containerWidth,
                         height: interfaceSize.height + bottomOffset + Design.keyboardScreenBottomPadding
                     ),
-                    orientation: KeyboardViewController.variableStates.keyboardOrientation
+                    orientation: KeyboardViewController.variableStates.keyboardOrientation,
+                    layoutProfile: KeyboardViewController.variableStates.layoutContext.resolvedSizeCacheIdentifier
                 )
 
                 // 4. 計算した全体の高さを制約に設定する
@@ -274,6 +281,7 @@ final class KeyboardViewController: UIInputViewController {
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        Self.variableStates.duoFlickEnabled = AzooKeySettingProvider.duoFlickEnabled
         let size = self.currentKeyboardViewSize()
         self.applySizeUpdate(size: size)
         // キーボードのセットアップはこの段階で行う
@@ -301,15 +309,18 @@ final class KeyboardViewController: UIInputViewController {
         let size = self.currentKeyboardViewSize()
         let orientation = currentKeyboardOrientation()
         let reservedFrames = currentReservedFrames()
+        let allowsPanels = allowsDuoFlickPanels
         guard size != .zero,
               size != lastKnownContainerSize || orientation != lastKnownOrientation
-                || view.safeAreaInsets != lastKnownSafeAreaInsets || reservedFrames != lastKnownReservedFrames else {
+                || view.safeAreaInsets != lastKnownSafeAreaInsets || reservedFrames != lastKnownReservedFrames
+                || allowsPanels != lastKnownAllowsDuoFlickPanels else {
             return
         }
         lastKnownContainerSize = size
         lastKnownOrientation = orientation
         lastKnownSafeAreaInsets = view.safeAreaInsets
         lastKnownReservedFrames = reservedFrames
+        lastKnownAllowsDuoFlickPanels = allowsPanels
         self.applySizeUpdate(size: size, orientation: orientation, shouldUpdateHeight: true)
     }
 

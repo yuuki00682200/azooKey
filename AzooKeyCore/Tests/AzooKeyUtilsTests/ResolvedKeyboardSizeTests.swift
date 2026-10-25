@@ -4,14 +4,18 @@ import XCTest
 
 @MainActor
 final class ResolvedKeyboardSizeTests: XCTestCase {
-    func test_cachedSizeIsIsolatedByOrientation() throws {
+    func test_cachedSizeCannotLeakBetweenClosedAndSplitOrFromAnOlderBuild() throws {
         let suite = "ResolvedKeyboardSizeTests.\(UUID().uuidString)"
         let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
         defer { defaults.removePersistentDomain(forName: suite) }
-        let portrait = CGSize(width: 452, height: 335)
-        SharedStore.setResolvedKeyboardSize(portrait, orientation: .vertical, in: defaults)
-        XCTAssertEqual(SharedStore.resolvedKeyboardSize(orientation: .vertical, in: defaults), portrait)
-        XCTAssertNil(SharedStore.resolvedKeyboardSize(orientation: .horizontal, in: defaults))
+        SharedStore.setResolvedKeyboardSize(CGSize(width: 452, height: 335), orientation: .vertical, in: defaults)
+        XCTAssertNil(SharedStore.resolvedKeyboardSize(orientation: .vertical, layoutProfile: "duo-compact-v1", in: defaults))
+        let compact = CGSize(width: 452, height: 272)
+        SharedStore.setResolvedKeyboardSize(compact, orientation: .vertical, layoutProfile: "duo-compact-v1", in: defaults)
+        XCTAssertEqual(SharedStore.resolvedKeyboardSize(orientation: .vertical, layoutProfile: "duo-compact-v1", in: defaults), compact)
+        XCTAssertNil(SharedStore.resolvedKeyboardSize(orientation: .vertical, layoutProfile: "duo-split-v1", in: defaults))
+        XCTAssertNil(SharedStore.resolvedKeyboardSize(orientation: .horizontal, layoutProfile: "duo-compact-v1", in: defaults))
+        XCTAssertEqual(SharedStore.resolvedKeyboardSize(orientation: .vertical, in: defaults), compact)
     }
 
     func test_invalidSizeDoesNotReplaceTheValidCachedSize() throws {

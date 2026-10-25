@@ -82,6 +82,8 @@ jobs:
             -resultBundlePath TestResults/keyboard.xcresult \
             -only-testing:KeyboardViewsTests \
             -only-testing:AzooKeyUtilsTests/KeyboardLayoutInteractionTests \
+            -only-testing:AzooKeyUtilsTests/DuoFlickInteractionTests \
+            -only-testing:AzooKeyUtilsTests/DuoFlickLayoutDefaultsTests \
             -only-testing:AzooKeyUtilsTests/ResolvedKeyboardSizeTests \
             CODE_SIGNING_ALLOWED=NO | tee TestResults/keyboard.log
 
@@ -93,6 +95,7 @@ jobs:
               -destination "platform=iOS Simulator,name=${devices[$index]},OS=27.0" \
               -resultBundlePath "TestResults/app-$index.xcresult" \
               -only-testing:azooKeyUITests/DuoAdaptationUITests \
+              -only-testing:azooKeyUITests/DuoFlickSettingsUITests \
               -parallel-testing-enabled NO \
               CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY=- DEVELOPMENT_TEAM= \
               | tee "TestResults/app-$index.log"

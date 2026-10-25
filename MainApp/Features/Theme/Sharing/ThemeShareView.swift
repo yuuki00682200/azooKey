@@ -43,7 +43,8 @@ struct ThemeShareView: View {
     @MainActor @ViewBuilder private var captureKeyboardPreview: some View {
         let resolvedSize = KeyboardPreviewSizing.resolvedExtensionSize(
             fallbackWidth: previewContainerWidth,
-            orientation: verticalSizeClass == .compact ? .horizontal : .vertical
+            orientation: verticalSizeClass == .compact ? .horizontal : .vertical,
+            allowsDuoFlickPanels: verticalSizeClass != .compact
         )
         KeyboardPreview(
             theme: theme,
@@ -51,6 +52,7 @@ struct ThemeShareView: View {
                 resolvedSize: resolvedSize,
                 scale: 0.9
             ),
+            allowsDuoFlickPanels: verticalSizeClass != .compact,
             orientation: verticalSizeClass == .compact ? .horizontal : .vertical
         )
     }

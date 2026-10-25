@@ -37,6 +37,7 @@ public enum SharedStore {
     @MainActor
     public static func resolvedKeyboardSize(
         orientation: KeyboardOrientation,
+        layoutProfile: String? = nil,
         in defaults: UserDefaults? = nil
     ) -> CGSize? {
         let defaults = defaults ?? userDefaults
@@ -51,6 +52,9 @@ public enum SharedStore {
         height.doubleValue > 0 else {
             return nil
         }
+        if let layoutProfile, value["layoutProfile"] as? String != layoutProfile {
+            return nil
+        }
         return CGSize(width: width.doubleValue, height: height.doubleValue)
     }
 
@@ -58,13 +62,15 @@ public enum SharedStore {
     public static func setResolvedKeyboardSize(
         _ size: CGSize,
         orientation: KeyboardOrientation,
+        layoutProfile: String? = nil,
         in defaults: UserDefaults? = nil
     ) {
         guard size.width.isFinite, size.height.isFinite, size.width > 0, size.height > 0 else {
             return
         }
         let defaults = defaults ?? userDefaults
-        let value: [String: Any] = ["width": size.width, "height": size.height]
+        var value: [String: Any] = ["width": size.width, "height": size.height]
+        value["layoutProfile"] = layoutProfile
         defaults.set(
             value,
             forKey: resolvedKeyboardSizeKey(orientation: orientation)
